@@ -7,5 +7,5 @@ Flask
 gunicorn
 pillow
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch-cpu==1.10.0
+torch==1.10.0+cpu
 torchvision==0.11.0
