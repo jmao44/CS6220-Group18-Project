@@ -9,6 +9,10 @@ run_with_ngrok(app)  # Start ngrok when app is run
 def hello():
     return render_template('index.html')
 
+@app.route('/proposal')
+def proposal():
+    return render_template('proposal.html')
+
 @app.route("/train")
 def training():
     train.train()

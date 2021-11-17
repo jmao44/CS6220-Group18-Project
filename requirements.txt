@@ -5,6 +5,7 @@ sklearn
 pickle4
 git+https://github.com/gstaff/flask-ngrok
 flask==0.12.2
+Flask-Bootstrap==3.3.7.1
 gunicorn
 pillow
 torch
