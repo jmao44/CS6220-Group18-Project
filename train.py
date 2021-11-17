@@ -35,9 +35,9 @@ def load_data(subset=True, dataset_name='CIFAR10'):
             download=True,
             transform=my_transform
         )
-    # Hardcoded subset used for example purposes, only use 1000 images for train/test
+    # Hardcoded subset used for example purposes, only use 100 images for train/test
     if subset:
-        subset_list = list(range(0, 1000))
+        subset_list = list(range(0, 100))
         training_data = torch.utils.data.Subset(training_data, subset_list)
         test_data = torch.utils.data.Subset(test_data, subset_list)
 
