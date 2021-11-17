@@ -35,9 +35,9 @@ def load_data(subset=True, dataset_name='CIFAR10'):
             download=True,
             transform=my_transform
         )
-    # Hardcoded subset used for example purposes, only use 100 images for train/test
+    # Hardcoded subset used for example purposes, only use 500 images for train/test
     if subset:
-        subset_list = list(range(0, 100))
+        subset_list = list(range(0, 500))
         training_data = torch.utils.data.Subset(training_data, subset_list)
         test_data = torch.utils.data.Subset(test_data, subset_list)
 
@@ -164,7 +164,6 @@ def plot_losses(epochs, train_loss, test_loss):
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.show()
     plt.savefig('./visualizations/loss.png')
 
 def plot_acc(epochs, train_acc, test_acc):
@@ -175,7 +174,6 @@ def plot_acc(epochs, train_acc, test_acc):
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.show()
     plt.savefig('./visualizations/accuracy.png')
 
 
