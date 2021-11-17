@@ -1,12 +1,18 @@
 from flask import Flask, request, jsonify, render_template
+from flask_ngrok import run_with_ngrok
+import train
 
-#Initialize the flask App
 app = Flask(__name__)
+run_with_ngrok(app)  # Start ngrok when app is run
 
-#default page of our web-app
-@app.route('/')
-def home():
+@app.route("/")
+def hello():
     return render_template('index.html')
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/train")
+def training():
+    train.train()
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run()
