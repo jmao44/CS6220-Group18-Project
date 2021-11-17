@@ -4,8 +4,9 @@ scikit-learn
 sklearn
 pickle4
 Flask
+Flask-Bootstrap==3.3.7.1
 gunicorn
 pillow
-torch
-torchvision
-torchaudio
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.10.0+cpu
+torchvision==0.11.0+cpu
