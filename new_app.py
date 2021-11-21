@@ -5,8 +5,10 @@ import numpy as np
 # Page layout
 ######################################
 ## Page expands to full width
-st.set_page_config(page_title='Determining Feature Importance - Machine Learning App',
-                   layout='wide')
+st.set_page_config(
+    page_title='CS6220-Group18',
+    layout='wide'
+)
 
 ######################################
 ## Page Title
