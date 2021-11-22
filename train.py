@@ -12,7 +12,7 @@ from torchvision import datasets, transforms
 # Globally set the device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def load_data(subset=True, dataset_name='CIFAR10'):
+def load_data(subset=True, dataset_name='CIFAR-10'):
     # Properly transform the images to work with AlexNet
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     std=[0.229, 0.224, 0.225])
@@ -21,7 +21,7 @@ def load_data(subset=True, dataset_name='CIFAR10'):
     my_transform = transforms.Compose([resize, to_rgb, transforms.ToTensor(), normalize])
 
     # TBA other datasets
-    if dataset_name == 'CIFAR10':
+    if dataset_name == 'CIFAR-10':
         training_data = datasets.CIFAR10(
             root="data",
             train=True,

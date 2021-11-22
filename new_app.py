@@ -4,6 +4,8 @@ import numpy as np
 import train
 import utils
 
+from torchvision.utils import make_grid
+
 # Page layout
 ######################################
 ## Page expands to full width
@@ -57,3 +59,9 @@ if st.sidebar.button('Generate'):
         st.subheader('Model: {}'.format(model_select))
         st.code(model.eval())
         st.subheader('Dataset: [{}]({})'.format(dataset_select, utils.dataset_links[dataset_select]))
+
+        train_loader, test_loader = train.load_data(dataset_name=dataset_select)
+        data_iter = iter(train_loader)
+        images, labels = data_iter.next()
+
+        st.image(utils.convert_tensor_for_display(make_grid(images)))
