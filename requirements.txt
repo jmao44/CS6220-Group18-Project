@@ -2,11 +2,15 @@ numpy
 pandas
 scikit-learn
 sklearn
+matplotlib
 pickle4
-Flask
+git+https://github.com/gstaff/flask-ngrok
+flask==0.12.2
 Flask-Bootstrap==3.3.7.1
 gunicorn
 pillow
---find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.10.0+cpu
-torchvision==0.11.0+cpu
+torch
+torchvision
+torchaudio
+cloud-tpu-client==0.10
+# https://storage.googleapis.com/tpu-pytorch/wheels/torch_xla-1.9-cp37-cp37m-linux_x86_64.whl
