@@ -2,6 +2,7 @@ numpy
 pandas
 scikit-learn
 sklearn
+matplotlib
 pickle4
 git+https://github.com/gstaff/flask-ngrok
 flask==0.12.2
