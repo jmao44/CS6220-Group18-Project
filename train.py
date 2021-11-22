@@ -20,7 +20,6 @@ def load_data(subset=True, dataset_name='CIFAR-10'):
     resize = transforms.Resize((224, 224))
     my_transform = transforms.Compose([resize, to_rgb, transforms.ToTensor(), normalize])
 
-    # TBA other datasets
     if dataset_name == 'CIFAR-10':
         training_data = datasets.CIFAR10(
             root="data",
@@ -35,6 +34,38 @@ def load_data(subset=True, dataset_name='CIFAR-10'):
             download=True,
             transform=my_transform
         )
+    elif dataset_name == 'Fashion-MNIST':
+        training_data = datasets.FashionMNIST(
+            root="data",
+            train=True,
+            download=True,
+            transform=my_transform
+        )
+
+        test_data = datasets.FashionMNIST(
+            root="data",
+            train=False,
+            download=True,
+            transform=my_transform
+        )
+    elif dataset_name == 'MNIST':
+        training_data = datasets.MNIST(
+            root="data",
+            train=True,
+            download=True,
+            transform=my_transform
+        )
+
+        test_data = datasets.MNIST(
+            root="data",
+            train=False,
+            download=True,
+            transform=my_transform
+        )
+    # TBA User uploaded dataset
+    else:
+        return None
+
     # Hardcoded subset used for example purposes, only use 500 images for train/test
     if subset:
         subset_list = list(range(0, 500))
@@ -58,6 +89,38 @@ def init_alexnet(num_classes=10):
 
     # Set last layers as linear classifier based on num_classes
     model.classifier[6] = nn.Linear(4096, num_classes)
+    model.to(device)
+
+    print(model)
+
+    return model
+
+def init_resnet(num_classes=10):
+    model = models.resnet18(pretrained=True)
+    model.eval()
+
+    # Freeze parameters so we don't backprop through them
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Set last layers as linear classifier based on num_classes
+    model.fc = nn.Linear(512, num_classes)
+    model.to(device)
+
+    print(model)
+
+    return model
+
+def init_vgg(num_classes=10):
+    model = models.vgg16(pretrained=True)
+    model.eval()
+
+    # Freeze parameters so we don't backprop through them
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Set last layers as linear classifier based on num_classes
+    model.classifier[6] = nn.Linear(4096,num_classes)
     model.to(device)
 
     print(model)

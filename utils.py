@@ -3,11 +3,13 @@ import streamlit as st
 from torchvision import transforms
 
 DATASET_LINKS = {
-    'CIFAR-10': 'https://www.cs.toronto.edu/~kriz/cifar.html'
+    'CIFAR-10': 'https://www.cs.toronto.edu/~kriz/cifar.html',
+    'Fashion-MNIST': 'https://github.com/zalandoresearch/fashion-mnist',
+    'MNIST': 'https://paperswithcode.com/dataset/mnist'
 }
 
 SAMPLE_DATASETS = (
-    'CIFAR-10', 'Fashion-MNIST', 'MNIST', 'ImageNet'
+    'CIFAR-10', 'Fashion-MNIST', 'MNIST'
 )
 
 SAMPLE_MODELS = (
