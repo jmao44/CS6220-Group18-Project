@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import train
+import utils
 
 # Page layout
 ######################################
@@ -19,7 +21,7 @@ st.write('**CS 6220 Project Group 18:** Junyan Mao, Jintong Jiang, Yiqiong Xiao,
 ######################################
 ## App Workflow Process
 ######################################
-st.header('Process')
+st.subheader('Process')
 st.write('1. Upload dataset or use sample datasets')
 st.write('2. Utilize GridSearch & GTDLBench to run ')
 
@@ -45,3 +47,13 @@ model_select = st.sidebar.selectbox(
     'Pick a model',
     ('AlexNet', 'ResNet-18', 'VGG-16')
 )
+
+# Step 3: generate the optimal batch size
+st.sidebar.header('Step 3: Generate the optimal batch size')
+if st.sidebar.button('Generate'):
+
+    if dataset_select == 'CIFAR-10' and model_select == 'AlexNet':
+        model = train.init_alexnet()
+        st.subheader('Model: {}'.format(model_select))
+        st.code(model.eval())
+        st.subheader('Dataset: [{}]({})'.format(dataset_select, utils.dataset_links[dataset_select]))
