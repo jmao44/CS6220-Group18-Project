@@ -40,46 +40,29 @@ uploaded_file = st.sidebar.file_uploader('Upload your own data', type=['csv'])
 st.sidebar.markdown('[Example CSV input file]()')
 
 # select dataset
-dataset_select = st.sidebar.selectbox(
-    'Or, pick an example dataset from the list',
-    ('CIFAR-10', 'Fashion-MNIST', 'MNIST', 'ImageNet')
-)
+dataset_select = st.sidebar.selectbox('Or, pick an example dataset from the list', utils.SAMPLE_DATASETS)
 
 # Step 2: select model
 st.sidebar.header('Step 2: Pick your model')
-model_select = st.sidebar.selectbox(
-    'Pick a model',
-    ('AlexNet', 'ResNet-18', 'VGG-16')
-)
+model_select = st.sidebar.selectbox('Pick a model', utils.SAMPLE_MODELS)
 
 # placeholders
-model_name_ph = st.empty()
-model_struct_ph = st.empty()
-dataset_ph = st.empty()
-dataset_sample_ph = st.empty()
-training_ph = st.empty()
-train_progress_bar_ph = st.empty()
-epoch_ph = st.empty()
-acc_plot_ph = st.empty()
-
+placeholder_list = utils.initialize_placeholders(8)
+model_name_ph, model_struct_ph, \
+dataset_ph, dataset_sample_ph, \
+training_ph, train_progress_bar_ph, \
+epoch_ph, acc_plot_ph = placeholder_list
 
 # Step 3: generate the optimal batch size
 st.sidebar.header('Step 3: Generate the optimal batch size')
 if st.sidebar.button('Generate'):
-    model_name_ph.empty()
-    model_struct_ph.empty()
-    dataset_ph.empty()
-    dataset_sample_ph.empty()
-    training_ph.empty()
-    train_progress_bar_ph.empty()
-    epoch_ph.empty()
-    acc_plot_ph.empty()
+    utils.empty_placeholders(placeholder_list) # reset placeholders
 
     if dataset_select == 'CIFAR-10' and model_select == 'AlexNet':
         model = train.init_alexnet()
         model_name_ph.subheader('Model: {}'.format(model_select))
         model_struct_ph.code(model.eval())
-        dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.dataset_links[dataset_select]))
+        dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.DATASET_LINKS[dataset_select]))
 
         with st.spinner('Loading dataset...'):
             train_loader, test_loader = train.load_data(dataset_name=dataset_select)
