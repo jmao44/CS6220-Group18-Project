@@ -84,7 +84,7 @@ if st.sidebar.button('Generate'):
         prev_test_loss = None
         progress_bar = st.progress(0)
         for epoch in range(epochs):
-            progress_bar.progress((epoch + 1) * 20)
+            progress_bar.progress(epoch * 20)
             for data, targets in iter(train_loader):
                 data = data.to(device)
                 targets = targets.to(device)
@@ -157,13 +157,13 @@ if st.sidebar.button('Generate'):
                 break
 
             model.train()
-
+        progress_bar.progress(100)
         model.eval()
 
         fig, ax = plt.subplots()
         ax.plot(range(1, epochs + 1), train_acc, 'g', label='Train Accuracy')
         ax.plot(range(1, epochs + 1), test_acc, 'b', label='Test Accuracy')
-        ax.set_title('Train and Test Loss')
+        ax.set_title('Train and Test Accuracy')
         ax.set_xlabel('Epochs')
         ax.set_ylabel('Accuracy')
         ax.legend()
