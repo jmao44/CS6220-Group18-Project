@@ -131,12 +131,16 @@ def train(epochs=5, patience=3):
     train_loader, test_loader = load_data()
     model = init_alexnet()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.classifier.parameters())
-
+    # optimizer = optim.Adam(model.classifier.parameters())
+    if hasattr(model, 'classifier'):
+        optimizer = optim.Adam(model.classifier.parameters())
+    elif hasattr(model, 'fc'):
+        optimizer = optim.Adam(model.fc.parameters())
     test_loss = []
     train_loss = []
     test_acc = []
     train_acc = []
+    res =[]
     epoch_no_improve = 0
     prev_test_loss = None
 
@@ -213,11 +217,17 @@ def train(epochs=5, patience=3):
             break
 
         model.train()
+    res.append([int(i)+1 for i in range(epochs)])
 
+    res.append(train_acc)
+    res.append(train_loss)
+
+    res.append(test_acc)
+    res.append(test_loss)
     model.eval()
     plot_losses(epochs, train_loss, test_loss)
     plot_acc(epochs, train_acc, test_acc)
-    return model
+    return epochs, train_loss, test_loss,train_acc, test_acc, res
 
 def plot_losses(epochs, train_loss, test_loss):
     epochs_range = range(1,epochs+1)

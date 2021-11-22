@@ -7,7 +7,8 @@ import utils
 from torch import nn
 from torch import optim
 from torchvision.utils import make_grid
-
+import numpy as np
+import pandas as pd
 # Page layout
 ######################################
 ## Page expands to full width
@@ -47,10 +48,11 @@ st.sidebar.header('Step 2: Pick your model')
 model_select = st.sidebar.selectbox('Pick a model', utils.SAMPLE_MODELS)
 
 # placeholders
-placeholder_list = utils.initialize_placeholders(9)
+placeholder_list = utils.initialize_placeholders(10)
 model_name_ph, model_struct_ph, \
 dataset_ph, dataset_sample_ph, \
 training_ph, train_progress_bar_ph, \
+info_table_ph, \
 epoch_ph, acc_plot_ph, loss_plot_ph = placeholder_list
 
 # Step 3: generate the optimal batch size
@@ -97,119 +99,142 @@ if st.sidebar.button('Generate'):
             sample_image = utils.convert_tensor_for_display(make_grid(images))
             dataset_sample_ph.image(sample_image)
 
-    training_ph.subheader('Training:')
+    training_ph.subheader('Training Results:')
+    with st.spinner('Running and gathering data...This may take a few minutes...'):
+        epoch, train_loss, test_loss, train_acc, test_acc, res = train.train()
+    fig, ax = plt.subplots()
+    ax.plot(range(1, epoch + 1), train_acc, 'g', label='Train Accuracy')
+    ax.plot(range(1, epoch + 1), test_acc, 'b', label='Test Accuracy')
+    ax.set_title('Train and Test Accuracy')
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Accuracy')
+    ax.legend()
+    acc_plot_ph.pyplot(fig)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    epochs = 5
-    patience = 3
-    criterion = nn.CrossEntropyLoss()
-    if hasattr(model, 'classifier'):
-        optimizer = optim.Adam(model.classifier.parameters())
-    elif hasattr(model, 'fc'):
-        optimizer = optim.Adam(model.fc.parameters())
-    test_loss = []
-    train_loss = []
-    test_acc = []
-    train_acc = []
-    epoch_no_improve = 0
-    prev_test_loss = None
-    progress_bar = train_progress_bar_ph.progress(0)
-    for epoch in range(epochs):
-        progress_bar.progress(epoch * 20)
-        for data, targets in iter(train_loader):
-            data = data.to(device)
-            targets = targets.to(device)
+    fig, ax = plt.subplots()
+    ax.plot(range(1, epoch + 1), train_loss, 'g', label='Train Loss')
+    ax.plot(range(1, epoch + 1), test_loss, 'b', label='Test Loss')
+    ax.set_title('Train and Test Loss')
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Loss')
+    ax.legend()
+    loss_plot_ph.pyplot(fig)
 
-            results = model.forward(data)
-            # Computes loss
-            loss = criterion(results, targets)
-
-            # Updates model
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-        # Evaluate after every epoch
-        test_loss_val = 0
-        test_accuracy = 0
-        train_loss_val = 0
-        train_accuracy = 0
-        model.eval()
-        with torch.no_grad():
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                scores = model.forward(inputs)
-                batch_loss = criterion(scores, labels)
-                train_loss_val += batch_loss.item()
-
-                # Calculate accuracy
-                top_p, top_class = scores.topk(1, dim=1)
-                equals = top_class == labels.view(*top_class.shape)
-                train_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-
-            for inputs, labels in test_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                scores = model.forward(inputs)
-                batch_loss = criterion(scores, labels)
-                test_loss_val += batch_loss.item()
-
-                # Calculate accuracy
-                top_p, top_class = scores.topk(1, dim=1)
-                equals = top_class == labels.view(*top_class.shape)
-                test_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-
-        final_test_loss = test_loss_val/len(test_loader)
-        final_train_loss = train_loss_val/len(train_loader)
-        final_test_acc = test_accuracy/len(test_loader)
-        final_train_acc = train_accuracy/len(train_loader)
-
-        test_loss.append(final_test_loss)
-        train_loss.append(final_train_loss)
-        test_acc.append(final_test_acc)
-        train_acc.append(final_train_acc)
-
-        epoch_ph.write(f"Epoch {epoch+1}/{epochs}.. "
-                f"Train loss: {final_train_loss:.3f}.. "
-                f"Test loss: {final_test_loss:.3f}.. "
-                f"Train accuracy: {final_train_acc:.3f}.. "
-                f"Test accuracy: {final_test_acc:.3f}")
-
-        if epoch > 0:
-            fig, ax = plt.subplots()
-            ax.plot(range(1, epoch+2), train_acc, 'g', label='Train Accuracy')
-            ax.plot(range(1, epoch+2), test_acc, 'b', label='Test Accuracy')
-            ax.set_title('Train and Test Accuracy')
-            ax.set_xlabel('Epochs')
-            ax.set_ylabel('Accuracy')
-            ax.legend()
-            acc_plot_ph.pyplot(fig)
-
-            fig, ax = plt.subplots()
-            ax.plot(range(1, epoch+2), train_loss, 'g', label='Train Loss')
-            ax.plot(range(1, epoch+2), test_loss, 'b', label='Test Loss')
-            ax.set_title('Train and Test Loss')
-            ax.set_xlabel('Epochs')
-            ax.set_ylabel('Loss')
-            ax.legend()
-            loss_plot_ph.pyplot(fig)
-
-
-        if prev_test_loss:
-            # Check early stopping
-            if prev_test_loss < final_test_loss:
-                epoch_no_improve += 1
-            else:
-                epoch_no_improve = 0
-
-        prev_test_loss = test_loss[-1]
-
-        if epoch_no_improve >= patience:
-            print("EARLY STOPPING")
-            break
-
-        model.train()
-    progress_bar.progress(100)
-    model.eval()
+    col_data = ['Num of epochs', 'Train Accuracy', 'Train Loss', 'Test Acurracy', 'Test Loss']
+    data = np.array(res)
+    df = pd.DataFrame(data.transpose(), columns=col_data)
+    info_table_ph.table(df)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # epochs = 5
+    # patience = 3
+    # criterion = nn.CrossEntropyLoss()
+    # if hasattr(model, 'classifier'):
+    #     optimizer = optim.Adam(model.classifier.parameters())
+    # elif hasattr(model, 'fc'):
+    #     optimizer = optim.Adam(model.fc.parameters())
+    # test_loss = []
+    # train_loss = []
+    # test_acc = []
+    # train_acc = []
+    # epoch_no_improve = 0
+    # prev_test_loss = None
+    # progress_bar = train_progress_bar_ph.progress(0)
+    # for epoch in range(epochs):
+    #     progress_bar.progress(epoch * 20)
+    #     for data, targets in iter(train_loader):
+    #         data = data.to(device)
+    #         targets = targets.to(device)
+    #
+    #         results = model.forward(data)
+    #         # Computes loss
+    #         loss = criterion(results, targets)
+    #
+    #         # Updates model
+    #         optimizer.zero_grad()
+    #         loss.backward()
+    #         optimizer.step()
+    #
+    #     # Evaluate after every epoch
+    #     test_loss_val = 0
+    #     test_accuracy = 0
+    #     train_loss_val = 0
+    #     train_accuracy = 0
+    #     model.eval()
+    #     with torch.no_grad():
+    #         for inputs, labels in train_loader:
+    #             inputs, labels = inputs.to(device), labels.to(device)
+    #             scores = model.forward(inputs)
+    #             batch_loss = criterion(scores, labels)
+    #             train_loss_val += batch_loss.item()
+    #
+    #             # Calculate accuracy
+    #             top_p, top_class = scores.topk(1, dim=1)
+    #             equals = top_class == labels.view(*top_class.shape)
+    #             train_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+    #
+    #         for inputs, labels in test_loader:
+    #             inputs, labels = inputs.to(device), labels.to(device)
+    #             scores = model.forward(inputs)
+    #             batch_loss = criterion(scores, labels)
+    #             test_loss_val += batch_loss.item()
+    #
+    #             # Calculate accuracy
+    #             top_p, top_class = scores.topk(1, dim=1)
+    #             equals = top_class == labels.view(*top_class.shape)
+    #             test_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+    #
+    #     final_test_loss = test_loss_val/len(test_loader)
+    #     final_train_loss = train_loss_val/len(train_loader)
+    #     final_test_acc = test_accuracy/len(test_loader)
+    #     final_train_acc = train_accuracy/len(train_loader)
+    #
+    #     test_loss.append(final_test_loss)
+    #     train_loss.append(final_train_loss)
+    #     test_acc.append(final_test_acc)
+    #     train_acc.append(final_train_acc)
+    #
+    #     epoch_ph.write(f"Epoch {epoch+1}/{epochs}.. "
+    #             f"Train loss: {final_train_loss:.3f}.. "
+    #             f"Test loss: {final_test_loss:.3f}.. "
+    #             f"Train accuracy: {final_train_acc:.3f}.. "
+    #             f"Test accuracy: {final_test_acc:.3f}")
+    #
+    #     if epoch > 0:
+    #         fig, ax = plt.subplots()
+    #         ax.plot(range(1, epoch+2), train_acc, 'g', label='Train Accuracy')
+    #         ax.plot(range(1, epoch+2), test_acc, 'b', label='Test Accuracy')
+    #         ax.set_title('Train and Test Accuracy')
+    #         ax.set_xlabel('Epochs')
+    #         ax.set_ylabel('Accuracy')
+    #         ax.legend()
+    #         acc_plot_ph.pyplot(fig)
+    #
+    #         fig, ax = plt.subplots()
+    #         ax.plot(range(1, epoch+2), train_loss, 'g', label='Train Loss')
+    #         ax.plot(range(1, epoch+2), test_loss, 'b', label='Test Loss')
+    #         ax.set_title('Train and Test Loss')
+    #         ax.set_xlabel('Epochs')
+    #         ax.set_ylabel('Loss')
+    #         ax.legend()
+    #         loss_plot_ph.pyplot(fig)
+    #
+    #
+    #     if prev_test_loss:
+    #         # Check early stopping
+    #         if prev_test_loss < final_test_loss:
+    #             epoch_no_improve += 1
+    #         else:
+    #             epoch_no_improve = 0
+    #
+    #     prev_test_loss = test_loss[-1]
+    #
+    #     if epoch_no_improve >= patience:
+    #         print("EARLY STOPPING")
+    #         break
+    #
+    #     model.train()
+    # progress_bar.progress(100)
+    # model.eval()
 
 
 
