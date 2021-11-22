@@ -25,9 +25,9 @@ st.write('**CS 6220 Project Group 18:** Junyan Mao, Jintong Jiang, Yiqiong Xiao,
 ######################################
 ## App Workflow Process
 ######################################
-st.subheader('Process')
-st.write('1. Upload dataset or use sample datasets')
-st.write('2. Utilize GridSearch & LRBench to run ')
+st.subheader('Introduction')
+st.write('We created a AutoML platform that optimizes deep neural network performance. It leverages GridSearchCV and LRBench to optimize the hyperparameters of ML models. This platform provides an interactive way for users to select their choice of dataset and model and it visualizes the optimization, training, and performance analysis process.')
+st.write("Follow the sidebar, to try it out!")
 
 ######################################
 ## Sidebar
