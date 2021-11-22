@@ -52,24 +52,43 @@ model_select = st.sidebar.selectbox(
     ('AlexNet', 'ResNet-18', 'VGG-16')
 )
 
+# placeholders
+model_name_ph = st.empty()
+model_struct_ph = st.empty()
+dataset_ph = st.empty()
+dataset_sample_ph = st.empty()
+training_ph = st.empty()
+train_progress_bar_ph = st.empty()
+epoch_ph = st.empty()
+acc_plot_ph = st.empty()
+
+
 # Step 3: generate the optimal batch size
 st.sidebar.header('Step 3: Generate the optimal batch size')
 if st.sidebar.button('Generate'):
+    model_name_ph.empty()
+    model_struct_ph.empty()
+    dataset_ph.empty()
+    dataset_sample_ph.empty()
+    training_ph.empty()
+    train_progress_bar_ph.empty()
+    epoch_ph.empty()
+    acc_plot_ph.empty()
 
     if dataset_select == 'CIFAR-10' and model_select == 'AlexNet':
         model = train.init_alexnet()
-        st.subheader('Model: {}'.format(model_select))
-        st.code(model.eval())
-        st.subheader('Dataset: [{}]({})'.format(dataset_select, utils.dataset_links[dataset_select]))
+        model_name_ph.subheader('Model: {}'.format(model_select))
+        model_struct_ph.code(model.eval())
+        dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.dataset_links[dataset_select]))
 
         with st.spinner('Loading dataset...'):
             train_loader, test_loader = train.load_data(dataset_name=dataset_select)
             data_iter = iter(train_loader)
             images, labels = data_iter.next()
             sample_image = utils.convert_tensor_for_display(make_grid(images))
-            st.image(sample_image)
+            dataset_sample_ph.image(sample_image)
 
-        st.subheader('Training:')
+        training_ph.subheader('Training:')
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         epochs = 5
@@ -82,7 +101,7 @@ if st.sidebar.button('Generate'):
         train_acc = []
         epoch_no_improve = 0
         prev_test_loss = None
-        progress_bar = st.progress(0)
+        progress_bar = train_progress_bar_ph.progress(0)
         for epoch in range(epochs):
             progress_bar.progress(epoch * 20)
             for data, targets in iter(train_loader):
@@ -137,7 +156,7 @@ if st.sidebar.button('Generate'):
             test_acc.append(final_test_acc)
             train_acc.append(final_train_acc)
 
-            st.write(f"Epoch {epoch+1}/{epochs}.. "
+            epoch_ph.write(f"Epoch {epoch+1}/{epochs}.. "
                     f"Train loss: {final_train_loss:.3f}.. "
                     f"Test loss: {final_test_loss:.3f}.. "
                     f"Train accuracy: {final_train_acc:.3f}.. "
@@ -168,7 +187,7 @@ if st.sidebar.button('Generate'):
         ax.set_ylabel('Accuracy')
         ax.legend()
 
-        st.pyplot(fig)
+        acc_plot_ph.pyplot(fig)
 
         # plot_losses(epochs, train_loss, test_loss)
         # plot_acc(epochs, train_acc, test_acc)
