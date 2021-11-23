@@ -20,7 +20,7 @@ st.set_page_config(
 ######################################
 ## Page Title
 ######################################
-st.title('Deep Neural Network Performance Optimization using GridSearch and LRBench')
+st.title('Interactive Deep Neural Network Performance Optimization using GridSearch and LRBench')
 st.write('**CS 6220 Project Group 18:** Junyan Mao, Jintong Jiang, Yiqiong Xiao, Gabriel Wang, Andrew Wang')
 
 ######################################
