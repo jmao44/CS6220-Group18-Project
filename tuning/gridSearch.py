@@ -9,19 +9,21 @@ import numpy as np
 import skorch.callbacks
 import torch.optim
 
-def update_learning_rate(optimizer, lr):
+"""def update_learning_rate(optimizer, lr):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
 # Update learning rate using LRBench at the beginning at each epoch. The LRBench Object is the the lrbench param of the skorch net
 class LRBenchCallback(skorch.callbacks.Callback):
-    def on_epoch_begin(net):
-        lrbench=net.get_params('lrbench')
+    def __init__(self, lrbench):
+        super().__init__()
+        self.lrbench = lrbench
+
+    def on_epoch_begin(self, net, **kwargs):
         print("Updating Learning Rate with LRBench")
         epoch = len(net.history)
         optimizer = net.optimizer
-        update_learning_rate(optimizer, lrbench.getLR(epoch))
-
+        update_learning_rate(optimizer, self.lrbench.getLR(epoch))"""
 
 
 def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=None, subset=None):
@@ -35,7 +37,7 @@ def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=
         optimizer=torch.optim.Adam,
         verbose=False,
         criterion=torch.nn.CrossEntropyLoss(),
-        callbacks=[] if lrbenches is None else [('lrbenchcb', LRBenchCallback)],
+        callbacks=[],
         device=device
     )
     if subset is not None:
@@ -51,8 +53,9 @@ def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=
                 'batch_size': [32, 64, 128, 256]
             }
         else:
+            print('Using LRBench')
             params = {
-                'lrbench': lrbenches,
+                'callbacks': [[('lr_scheduler', skorch.callbacks.LRScheduler(policy=torch.optim.lr_scheduler.LambdaLR, lr_lambda=lambda e: lrbench.getLR(e))), ] for lrbench in lrbenches],
                 'batch_size': [32, 64, 128, 256]
             }
     gs = GridSearchCV(skmodel, params, scoring='accuracy', cv=3, refit=False)
