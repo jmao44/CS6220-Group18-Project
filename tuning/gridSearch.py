@@ -9,7 +9,7 @@ import numpy as np
 import skorch.callbacks
 import torch.optim
 
-"""def update_learning_rate(optimizer, lr):
+def update_learning_rate(optimizer, lr):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
@@ -20,14 +20,24 @@ class LRBenchCallback(skorch.callbacks.Callback):
         self.lrbench = lrbench
 
     def on_epoch_begin(self, net, **kwargs):
-        print("Updating Learning Rate with LRBench")
         epoch = len(net.history)
-        optimizer = net.optimizer
-        update_learning_rate(optimizer, self.lrbench.getLR(epoch))"""
+        optimizer = net.optimizer_
+        print(epoch, self.lrbench.getLR(epoch))
+        update_learning_rate(optimizer, self.lrbench.getLR(epoch))
 
 
 def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=None, subset=None):
-    # Wrap pytorch module as sklearn classifier to use GridSearchCV
+    """Find Optimal HyperParameters using skorch and GridsearchCV. Can provide LRBench learning rate schedules for learning rate fine-tuning.
+
+    Keyword arguments:
+    model -- the model to be tuned. Can be class name or model instance of Pytorch Modules.
+    X -- training set inputs,
+    y -- training set labels.
+    device -- pytorch device for model training.
+    params -- grid search parameter dictionary. See skorch parameters and GridSearchCV documentation for more detail.
+    lrbenches -- list of lrbench instances that represent learning rate schedules for each epoch.
+    subset -- Use a subset of the training set for tuning.
+    """
     num_classes = int(y.max() + 1)
     skmodel = NeuralNetClassifier(
         model,
@@ -55,9 +65,12 @@ def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=
         else:
             print('Using LRBench')
             params = {
-                'callbacks': [[('lr_scheduler', skorch.callbacks.LRScheduler(policy=torch.optim.lr_scheduler.LambdaLR, lr_lambda=lambda e: lrbench.getLR(e))), ] for lrbench in lrbenches],
+#                'callbacks': [[('lr_scheduler', skorch.callbacks.LRScheduler(policy=torch.optim.lr_scheduler.LambdaLR, lr_lambda=lambda e: lrbench.getLR(e))), ] for lrbench in lrbenches],
+                'callbacks': [[('lrbench', LRBenchCallback(lrbench)),] for lrbench in lrbenches],
                 'batch_size': [32, 64, 128, 256]
             }
+    elif lrbenches is not None:
+        params['callbacks'] = [[('lrbench', LRBenchCallback(lrbench)),] for lrbench in lrbenches]
     gs = GridSearchCV(skmodel, params, scoring='accuracy', cv=3, refit=False)
     gs.fit(X, y)
-    return gs.best_score_, gs.best_params_
+    return gs.best_score_, gs.best_params_, gs
