@@ -16,6 +16,10 @@ SAMPLE_MODELS = (
     'AlexNet', 'ResNet-18', 'VGG-16'
 )
 
+SAMPLE_ACTIONS = (
+    'Train', 'Optimize'
+)
+
 def convert_tensor_for_display(tensor):
     inv_trans = transforms.Compose([
         transforms.Normalize(mean=[ 0., 0., 0. ], std=[ 1/0.229, 1/0.224, 1/0.225 ]),

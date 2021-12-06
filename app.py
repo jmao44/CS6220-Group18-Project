@@ -41,7 +41,7 @@ st.sidebar.header('Step 1: Pick your dataset')
 #st.sidebar.markdown('[Example CSV input file]()')
 
 # select dataset
-dataset_select = st.sidebar.selectbox('Or, pick an example dataset from the list', utils.SAMPLE_DATASETS)
+dataset_select = st.sidebar.selectbox('Pick an example dataset from the list', utils.SAMPLE_DATASETS)
 
 # Step 2: select model
 st.sidebar.header('Step 2: Pick your model')
@@ -56,8 +56,9 @@ info_table_ph, \
 epoch_ph, acc_plot_ph, loss_plot_ph = placeholder_list
 
 # Step 3: generate the optimal batch size
-st.sidebar.header('Step 3: Generate the optimal batch size')
-if st.sidebar.button('Generate'):
+st.sidebar.header('Step 3: Select Action')
+action_select = st.sidebar.selectbox('Train a model or search hyperparameters', utils.SAMPLE_ACTIONS)
+if st.sidebar.button('Start'):
     utils.empty_placeholders(placeholder_list) # reset placeholders
     # Select Model
     if model_select == 'AlexNet':
@@ -99,31 +100,38 @@ if st.sidebar.button('Generate'):
             sample_image = utils.convert_tensor_for_display(make_grid(images))
             dataset_sample_ph.image(sample_image)
 
-    training_ph.subheader('Training Results:')
-    with st.spinner('Running and gathering data...This may take a few minutes...'):
-        train.gridsearch(model_select)
-        #epoch, train_loss, test_loss, train_acc, test_acc, res = train.train()
-    '''
-    fig, ax = plt.subplots()
-    ax.plot(range(1, epoch + 1), train_acc, 'g', label='Train Accuracy')
-    ax.plot(range(1, epoch + 1), test_acc, 'b', label='Test Accuracy')
-    ax.set_title('Train and Test Accuracy')
-    ax.set_xlabel('Epochs')
-    ax.set_ylabel('Accuracy')
-    ax.legend()
-    acc_plot_ph.pyplot(fig)
+    if action_select == 'Optimize':
+        training_ph.subheader('Training Results:')
+        with st.spinner('Running GridSearch and finding optimal paramters...This may take a long time...'):
+            best_score, batch_size, lr = train.gridsearch(model_select)
+            best_score = float(best_score) * 100
+            col_data = ['Best Score', 'Best Batch Size', 'Best Learning Rate Policy']
+            data = np.array([best_score, batch_size, lr])
+            df = pd.DataFrame(data.transpose(), columns=col_data)
+            info_table_ph.table(df)
+    elif action_select == 'Train':
+        training_ph.subheader('Training Results:')
+        with st.spinner('Running and gathering data...This may take a few minutes...'):
+            epoch, train_loss, test_loss, train_acc, test_acc, res = train.train(model)
+        fig, ax = plt.subplots()
+        ax.plot(range(1, epoch + 1), train_acc, 'g', label='Train Accuracy')
+        ax.plot(range(1, epoch + 1), test_acc, 'b', label='Test Accuracy')
+        ax.set_title('Train and Test Accuracy')
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Accuracy')
+        ax.legend()
+        acc_plot_ph.pyplot(fig)
 
-    fig, ax = plt.subplots()
-    ax.plot(range(1, epoch + 1), train_loss, 'g', label='Train Loss')
-    ax.plot(range(1, epoch + 1), test_loss, 'b', label='Test Loss')
-    ax.set_title('Train and Test Loss')
-    ax.set_xlabel('Epochs')
-    ax.set_ylabel('Loss')
-    ax.legend()
-    loss_plot_ph.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.plot(range(1, epoch + 1), train_loss, 'g', label='Train Loss')
+        ax.plot(range(1, epoch + 1), test_loss, 'b', label='Test Loss')
+        ax.set_title('Train and Test Loss')
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Loss')
+        ax.legend()
+        loss_plot_ph.pyplot(fig)
 
-    col_data = ['Num of epochs', 'Train Accuracy', 'Train Loss', 'Test Acurracy', 'Test Loss']
-    data = np.array(res)
-    df = pd.DataFrame(data.transpose(), columns=col_data)
-    info_table_ph.table(df)
-    '''
+        col_data = ['Num of epochs', 'Train Accuracy', 'Train Loss', 'Test Acurracy', 'Test Loss']
+        data = np.array(res)
+        df = pd.DataFrame(data.transpose(), columns=col_data)
+        info_table_ph.table(df)

@@ -148,14 +148,19 @@ def gridsearch(model_select):
     lrbench1=LR({'lrPolicy': 'SINEXP', 'k0': 0.005, 'k1':0.01, 'l': 5, 'gamma':0.94})
     lrbench2=LR({'lrPolicy': 'POLY', 'k0': 0.005, 'k1':0.02, 'p':2, 'l':5})
     lrbenches=[lrbench1,lrbench2]
-    #, subset=1280
-    print(tuning.gridSearch.gridSearchHyperparameters(model, X_train, y_train, device=device, lrbenches=lrbenches))
+    best_score, best_params, gs = tuning.gridSearch.gridSearchHyperparameters(model, X_train, y_train, device=device, lrbenches=lrbenches)
+    batch_size = best_params['batch_size']
+    if 'lr' in best_params.keys():
+        lr = best_params['lr']
+    elif 'callbacks' in best_params.keys():
+        lr = best_params['callbacks'][1].policy
+    return best_score, batch_size, lr
 
-def train(epochs=5, patience=3):
+def train(given_model, epochs=5, patience=3):
     train_loader, test_loader = load_data()
-    model = init_alexnet()
+    model = given_model
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.Adam(model.classifier.parameters())
+
     if hasattr(model, 'classifier'):
         optimizer = optim.Adam(model.classifier.parameters())
     elif hasattr(model, 'fc'):

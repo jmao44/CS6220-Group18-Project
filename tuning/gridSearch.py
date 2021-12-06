@@ -18,6 +18,7 @@ class LRBenchCallback(skorch.callbacks.Callback):
     def __init__(self, lrbench):
         super().__init__()
         self.lrbench = lrbench
+        self.policy = lrbench.lrPolicy
 
     def on_epoch_begin(self, net, **kwargs):
         epoch = len(net.history)
