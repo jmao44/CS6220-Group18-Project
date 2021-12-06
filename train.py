@@ -157,7 +157,7 @@ def gridsearch(model_select):
     return best_score, batch_size, lr
 
 def train(given_model, epochs=5, patience=3):
-    train_loader, test_loader = load_data()
+    _, _, _, _, train_loader, test_loader = load_data()
     model = given_model
     criterion = nn.CrossEntropyLoss()
 
