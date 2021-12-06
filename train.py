@@ -13,6 +13,7 @@ from tuning.LRBenchCustom.lr.piecewiseLR import piecewiseLR, LR
 
 # Globally set the device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print('Currently using: {}'.format(device))
 
 def load_data(subset=True, dataset_name='CIFAR-10'):
     # Properly transform the images to work with AlexNet
