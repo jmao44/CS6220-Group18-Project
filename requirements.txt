@@ -85,7 +85,7 @@ wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.5.2
 zipp==3.6.0
-skorch-0.11.0
+skorch==0.11.0
 scikit-learn
 sklearn
 matplotlib
