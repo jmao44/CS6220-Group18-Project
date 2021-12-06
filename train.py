@@ -136,9 +136,9 @@ def get_model(model_name):
     if model_name == 'AlexNet':
         model = init_alexnet()
     elif model_name == 'ResNet-18':
-        model = train.init_resnet()
+        model = init_resnet()
     elif model_name == 'VGG-16':
-        model = train.init_vgg()
+        model = init_vgg()
     return model
 
 def gridsearch(model_select):
