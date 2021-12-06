@@ -154,7 +154,7 @@ def gridsearch(model_select):
         lr = best_params['lr']
     elif 'callbacks' in best_params.keys():
         print(best_params['callbacks'])
-        lr = best_params['callbacks'][0].lrbench.lrParam['lrPolicy']
+        lr = best_params['callbacks'][0][1].lrbench.lrParam['lrPolicy']
     return best_score, batch_size, lr
 
 def train(given_model, epochs=5, patience=3):

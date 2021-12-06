@@ -105,9 +105,8 @@ if st.sidebar.button('Start'):
         with st.spinner('Running GridSearch and finding optimal parameters...This may take a long time...'):
             best_score, batch_size, lr = train.gridsearch(model_select)
             best_score = float(best_score) * 100
-            col_data = ['Best Score', 'Best Batch Size', 'Best Learning Rate Policy']
-            data = np.array([best_score, batch_size, lr])
-            df = pd.DataFrame(data.transpose(), columns=col_data)
+            data = {'Best Score': [best_score], 'Best Batch Size': [batch_size], 'Best Learning Rate Policy': [lr]}
+            df = pd.DataFrame(data)
             info_table_ph.table(df)
     elif action_select == 'Train':
         training_ph.subheader('Training Results:')
