@@ -65,7 +65,6 @@ def gridSearchHyperparameters(model, X, y, device='cpu', params=None, lrbenches=
         else:
             print('Using LRBench')
             params = {
-#                'callbacks': [[('lr_scheduler', skorch.callbacks.LRScheduler(policy=torch.optim.lr_scheduler.LambdaLR, lr_lambda=lambda e: lrbench.getLR(e))), ] for lrbench in lrbenches],
                 'callbacks': [[('lrbench', LRBenchCallback(lrbench)),] for lrbench in lrbenches],
                 'batch_size': [32, 64, 128, 256]
             }
