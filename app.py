@@ -102,7 +102,7 @@ if st.sidebar.button('Start'):
 
     if action_select == 'Optimize':
         training_ph.subheader('Training Results:')
-        with st.spinner('Running GridSearch and finding optimal paramters...This may take a long time...'):
+        with st.spinner('Running GridSearch and finding optimal parameters...This may take a long time...'):
             best_score, batch_size, lr = train.gridsearch(model_select)
             best_score = float(best_score) * 100
             col_data = ['Best Score', 'Best Batch Size', 'Best Learning Rate Policy']
