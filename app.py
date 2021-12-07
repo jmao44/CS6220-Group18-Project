@@ -46,6 +46,11 @@ dataset_select = st.sidebar.selectbox('Pick an example dataset from the list', u
 # Step 2: select model
 st.sidebar.header('Step 2: Pick your model')
 model_select = st.sidebar.selectbox('Pick a model', utils.SAMPLE_MODELS)
+batch_size_select = st.sidebar.number_input(
+    label='Enter a batch size',
+    value=64,
+    step=1
+)
 
 # placeholders
 placeholder_list = utils.initialize_placeholders(10)
@@ -78,7 +83,7 @@ if st.sidebar.button('Start'):
     if dataset_select == 'CIFAR-10':
         dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.DATASET_LINKS[dataset_select]))
         with st.spinner('Loading dataset...'):
-            _, _, _, _, train_loader, test_loader = train.load_data(dataset_name=dataset_select)
+            _, _, _, _, train_loader, test_loader = train.load_data(batch_size_select, dataset_name=dataset_select)
             data_iter = iter(train_loader)
             images, labels = data_iter.next()
             sample_image = utils.convert_tensor_for_display(make_grid(images))
@@ -86,7 +91,7 @@ if st.sidebar.button('Start'):
     elif dataset_select == 'Fashion-MNIST':
         dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.DATASET_LINKS[dataset_select]))
         with st.spinner('Loading dataset...'):
-            _, _, _, _, train_loader, test_loader = train.load_data(dataset_name=dataset_select)
+            _, _, _, _, train_loader, test_loader = train.load_data(batch_size_select, dataset_name=dataset_select)
             data_iter = iter(train_loader)
             images, labels = data_iter.next()
             sample_image = utils.convert_tensor_for_display(make_grid(images))
@@ -94,7 +99,7 @@ if st.sidebar.button('Start'):
     elif dataset_select == 'MNIST':
         dataset_ph.subheader('Dataset: [{}]({})'.format(dataset_select, utils.DATASET_LINKS[dataset_select]))
         with st.spinner('Loading dataset...'):
-            _, _, _, _, train_loader, test_loader = train.load_data(dataset_name=dataset_select)
+            _, _, _, _, train_loader, test_loader = train.load_data(batch_size_select, dataset_name=dataset_select)
             data_iter = iter(train_loader)
             images, labels = data_iter.next()
             sample_image = utils.convert_tensor_for_display(make_grid(images))
@@ -103,7 +108,7 @@ if st.sidebar.button('Start'):
     if action_select == 'Optimize':
         training_ph.subheader('Training Results:')
         with st.spinner('Running GridSearch and finding optimal parameters...This may take a long time...'):
-            best_score, batch_size, lr = train.gridsearch(model_select)
+            best_score, batch_size, lr = train.gridsearch(model_select, batch_size_select)
             best_score = float(best_score) * 100
             data = {'Best Score': [best_score], 'Best Batch Size': [batch_size], 'Best Learning Rate Policy': [lr]}
             df = pd.DataFrame(data)
@@ -111,7 +116,7 @@ if st.sidebar.button('Start'):
     elif action_select == 'Train':
         training_ph.subheader('Training Results:')
         with st.spinner('Running and gathering data...This may take a few minutes...'):
-            epoch, train_loss, test_loss, train_acc, test_acc, res = train.train(model)
+            epoch, train_loss, test_loss, train_acc, test_acc, res = train.train(model, batch_size=batch_size_select)
         fig, ax = plt.subplots()
         ax.plot(range(1, epoch + 1), train_acc, 'g', label='Train Accuracy')
         ax.plot(range(1, epoch + 1), test_acc, 'b', label='Test Accuracy')

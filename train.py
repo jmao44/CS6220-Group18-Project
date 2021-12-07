@@ -15,7 +15,7 @@ from tuning.LRBenchCustom.lr.piecewiseLR import piecewiseLR, LR
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print('Currently using: {}'.format(device))
 
-def load_data(subset=True, dataset_name='CIFAR-10'):
+def load_data(batch_size, subset=True, dataset_name='CIFAR-10'):
     # Properly transform the images to work with AlexNet
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     std=[0.229, 0.224, 0.225])
@@ -76,8 +76,8 @@ def load_data(subset=True, dataset_name='CIFAR-10'):
         test_data = torch.utils.data.Subset(test_data, subset_list)
 
     # TBA use GridSearch to modify batch sizes
-    train_loader = DataLoader(training_data, batch_size=64, shuffle=True)
-    test_loader = DataLoader(test_data, batch_size=64, shuffle=True)
+    train_loader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
     X_train, y_train = zip(*[data for data in training_data])
     X_train, y_train = torch.stack(X_train), torch.Tensor(y_train).type(torch.LongTensor)
     X_test, y_test = zip(*[data for data in test_data])
@@ -142,8 +142,8 @@ def get_model(model_name):
         model = init_vgg()
     return model
 
-def gridsearch(model_select):
-    X_train, y_train, _, _, _, _ = load_data()
+def gridsearch(model_select, batch_size):
+    X_train, y_train, _, _, _, _ = load_data(batch_size)
     model = get_model(model_select).to(device)
 
     lrbench1=LR({'lrPolicy': 'SINEXP', 'k0': 0.005, 'k1':0.01, 'l': 5, 'gamma':0.94})
@@ -158,8 +158,8 @@ def gridsearch(model_select):
         lr = best_params['callbacks'][0][1].lrbench.lrParam['lrPolicy']
     return best_score, batch_size, lr
 
-def train(given_model, epochs=5, patience=3):
-    _, _, _, _, train_loader, test_loader = load_data()
+def train(given_model, batch_size, epochs=5, patience=3):
+    _, _, _, _, train_loader, test_loader = load_data(batch_size)
     model = given_model
     criterion = nn.CrossEntropyLoss()
 
