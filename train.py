@@ -8,9 +8,12 @@ from torch import nn
 from torch import optim
 import torch.nn.functional as F
 from torchvision import datasets, transforms
+import tuning.gridSearch
+from tuning.LRBenchCustom.lr.piecewiseLR import piecewiseLR, LR
 
 # Globally set the device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print('Currently using: {}'.format(device))
 
 def load_data(subset=True, dataset_name='CIFAR-10'):
     # Properly transform the images to work with AlexNet
@@ -75,8 +78,11 @@ def load_data(subset=True, dataset_name='CIFAR-10'):
     # TBA use GridSearch to modify batch sizes
     train_loader = DataLoader(training_data, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=64, shuffle=True)
-
-    return (train_loader, test_loader)
+    X_train, y_train = zip(*[data for data in training_data])
+    X_train, y_train = torch.stack(X_train), torch.Tensor(y_train).type(torch.LongTensor)
+    X_test, y_test = zip(*[data for data in test_data])
+    X_test, y_test = torch.stack(X_test), torch.Tensor(y_test).type(torch.LongTensor)
+    return X_train, y_train, X_test, y_test, train_loader, test_loader
 
 
 def init_alexnet(num_classes=10):
@@ -127,11 +133,36 @@ def init_vgg(num_classes=10):
 
     return model
 
-def train(epochs=5, patience=3):
-    train_loader, test_loader = load_data()
-    model = init_alexnet()
+def get_model(model_name):
+    if model_name == 'AlexNet':
+        model = init_alexnet()
+    elif model_name == 'ResNet-18':
+        model = init_resnet()
+    elif model_name == 'VGG-16':
+        model = init_vgg()
+    return model
+
+def gridsearch(model_select):
+    X_train, y_train, _, _, _, _ = load_data()
+    model = get_model(model_select).to(device)
+
+    lrbench1=LR({'lrPolicy': 'SINEXP', 'k0': 0.005, 'k1':0.01, 'l': 5, 'gamma':0.94})
+    lrbench2=LR({'lrPolicy': 'POLY', 'k0': 0.005, 'k1':0.02, 'p':2, 'l':5})
+    lrbenches=[lrbench1,lrbench2]
+    best_score, best_params, gs = tuning.gridSearch.gridSearchHyperparameters(model, X_train, y_train, device=device, lrbenches=lrbenches)
+    batch_size = best_params['batch_size']
+    if 'lr' in best_params.keys():
+        lr = best_params['lr']
+    elif 'callbacks' in best_params.keys():
+        print(best_params['callbacks'])
+        lr = best_params['callbacks'][0][1].lrbench.lrParam['lrPolicy']
+    return best_score, batch_size, lr
+
+def train(given_model, epochs=5, patience=3):
+    _, _, _, _, train_loader, test_loader = load_data()
+    model = given_model
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.Adam(model.classifier.parameters())
+
     if hasattr(model, 'classifier'):
         optimizer = optim.Adam(model.classifier.parameters())
     elif hasattr(model, 'fc'):
